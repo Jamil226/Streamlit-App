@@ -51,7 +51,7 @@ elif tool == "Random Password Generator":
     st.subheader("🔑 Random Password Generator")
     
     # Password length and mode selection
-    length = st.slider("Password Length", 8, 32, 12)
+    length = st.slider("Password Length", 6, 8, 32, 12)
     mode = st.selectbox("Password Type", ["Letters Only", "Numbers Only", "Letters + Numbers", "All"])
 
     if st.button("Generate Password"):
