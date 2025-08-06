@@ -16,7 +16,7 @@ st.sidebar.info("Empowering people through open-source innovation.")
 # ----------------- Load Names from JSON ------------------
 @st.cache_data
 def load_names():
-    with open("random_names_1000.json", "r") as f:
+    with open("random_names.json", "r") as f:
         return json.load(f)
 
 names = load_names()
