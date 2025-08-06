@@ -10,7 +10,7 @@ st.sidebar.title("Tools")
 tool = st.sidebar.radio("Choose a Tool", ["Random Name Generator", "Random Password Generator"])
 
 st.sidebar.markdown("---")
-st.sidebar.info("Built with ❤️ using Streamlit")
+st.sidebar.info("Creating open-source tools for the betterment of all.")
 
 # ----------------- Utility Functions ------------------
 
