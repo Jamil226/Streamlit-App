@@ -21,6 +21,11 @@ def load_names():
 
 names = load_names()
 
+# Example Output
+
+# [{"first_name": "Alice", "last_name": "Smith"}, {"first_name": "Bob", "last_name": "Brown"}]
+
+
 # ----------------- Utility Functions ------------------
 
 def generate_random_name():
@@ -30,13 +35,17 @@ def generate_random_name():
 def generate_random_password(length=12, mode="All"):
     if mode == "Letters Only":
         chars = string.ascii_letters
+        # string.ascii_letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
     elif mode == "Numbers Only":
         chars = string.digits
+        # string.digits = '0123456789'
     elif mode == "Letters + Numbers":
         chars = string.ascii_letters + string.digits
     else:  # All (Letters + Numbers + Special Characters)
         chars = string.ascii_letters + string.digits + string.punctuation
     return ''.join(random.choices(chars, k=length))
+
+    # random.choices(chars, k=length)
 
 # ----------------- Main UI ------------------
 
