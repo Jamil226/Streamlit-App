@@ -4,7 +4,7 @@ import string
 import json
 
 # ----------------- Page Config ------------------
-st.set_page_config(page_title="Random Generator", page_icon="🎲", layout="centered")
+st.set_page_config(page_title="Random Generator Toolkit", page_icon="🎲", layout="centered")
 
 # ----------------- Sidebar ------------------
 st.sidebar.title("🧰 Tools")
