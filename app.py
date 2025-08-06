@@ -9,7 +9,7 @@ st.set_page_config(page_title="Random Generator Toolkit", page_icon="🎲", layo
 
 # ----------------- Sidebar ------------------
 st.sidebar.title("🧰 Tools")
-tool = st.sidebar.radio("Choose a Tool", ["Random Name Generator", "Random Password Generator", "LLaMA 3 Chatbot"])
+tool = st.sidebar.radio("Choose a Tool", ["Random Name Generator", "Random Password Generator", "LLaMA 3.1 Chatbot"])
 
 st.sidebar.markdown("---")
 st.sidebar.info("Empowering people through open-source innovation.")
@@ -34,40 +34,32 @@ def generate_random_password(length=12, mode="All"):
         chars = string.digits
     elif mode == "Letters + Numbers":
         chars = string.ascii_letters + string.digits
-    else:  # All
+    else:
         chars = string.ascii_letters + string.digits + string.punctuation
     return ''.join(random.choices(chars, k=length))
 
-# ----------------- LLaMA 3 (Hugging Face) Chatbot ------------------
-HUGGINGFACE_TOKEN = st.secrets["HUGGINGFACE"]["API_TOKEN"]
-API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-3-8b-chat"
+# ----------------- Hugging Face Chatbot ------------------
+HF_TOKEN = st.secrets["HUGGINGFACE"]["API_TOKEN"]
 
-headers = {
-    "Authorization": f"Bearer {HUGGINGFACE_TOKEN}",
-    "Content-Type": "application/json"
-}
-
-def query_llama3(prompt):
-    data = {
-        "inputs": prompt,
-        "parameters": {
-            "max_new_tokens": 256,
-            "temperature": 0.7,
-            "return_full_text": False
-        }
+def query_llama3(question):
+    API_URL = "https://router.huggingface.co/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {HF_TOKEN}"
     }
-
-    response = requests.post(API_URL, headers=headers, json=data)
+    payload = {
+        "model": "meta-llama/Llama-3.1-8B-Instruct:novita",
+        "messages": [
+            {
+                "role": "user",
+                "content": question
+            }
+        ]
+    }
+    response = requests.post(API_URL, headers=headers, json=payload)
     if response.status_code == 200:
-        result = response.json()
-        if isinstance(result, list) and "generated_text" in result[0]:
-            return result[0]["generated_text"]
-        elif "error" in result:
-            return f"API Error: {result['error']}"
-        else:
-            return "Unexpected response format from model."
+        return response.json()["choices"][0]["message"]["content"]
     else:
-        return f"Request failed with status code {response.status_code}"
+        return f"Error {response.status_code}: {response.text}"
 
 # ----------------- Main UI ------------------
 st.title("Random Generator Toolkit")
@@ -86,13 +78,13 @@ elif tool == "Random Password Generator":
         st.success(f"Generated Password: `{password}`")
         st.caption("Keep it secure 🔐")
 
-elif tool == "LLaMA 3 Chatbot":
-    st.subheader("🤖 Chat with LLaMA 3 (via Hugging Face)")
+elif tool == "LLaMA 3.1 Chatbot":
+    st.subheader("🤖 Chat with LLaMA 3.1 (Hugging Face)")
     user_input = st.text_input("Ask something...")
     if user_input:
-        with st.spinner("Generating response..."):
-            result = query_llama3(user_input)
-            st.success(result)
+        with st.spinner("Thinking..."):
+            response = query_llama3(user_input)
+            st.success(response)
 
 # ----------------- Footer ------------------
 st.markdown("---")
