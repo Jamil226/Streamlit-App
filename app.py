@@ -42,4 +42,4 @@ elif tool == "Random Password Generator":
 
 # ----------------- Footer ------------------
 st.markdown("---")
-st.caption("🔁 Refresh the app to regenerate or try another tool.")
+st.caption("Refresh the app to regenerate or try another tool.")
