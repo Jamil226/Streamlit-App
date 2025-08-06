@@ -3,7 +3,7 @@ import random
 import string
 
 # ----------------- Page Config ------------------
-st.set_page_config(page_title="Random Generator Hub", page_icon="🎲", layout="centered")
+st.set_page_config(page_title="Random Generator", page_icon="🎲", layout="centered")
 
 # ----------------- Sidebar ------------------
 st.sidebar.title("Tools")
