@@ -2,9 +2,7 @@ import streamlit as st
 import random
 import string
 import json
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain_community.llms import Together
+import requests
 
 # ----------------- Page Config ------------------
 st.set_page_config(page_title="Random Generator Toolkit", page_icon="🎲", layout="centered")
@@ -40,23 +38,36 @@ def generate_random_password(length=12, mode="All"):
         chars = string.ascii_letters + string.digits + string.punctuation
     return ''.join(random.choices(chars, k=length))
 
-# ----------------- LLaMA 3 Setup ------------------
-api_key = st.secrets["TOGETHER_API_KEY"]
+# ----------------- LLaMA 3 (Hugging Face) Chatbot ------------------
+HUGGINGFACE_TOKEN = st.secrets["HUGGINGFACE"]["API_TOKEN"]
+API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-3-8b-chat"
 
-llm = Together(
-    model="meta-llama/Meta-Llama-3-8B-Instruct", 
-    temperature=0.7,
-    max_tokens=512,
-    together_api_key="your_api_key_here"  
-)
+headers = {
+    "Authorization": f"Bearer {HUGGINGFACE_TOKEN}",
+    "Content-Type": "application/json"
+}
 
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful assistant. Respond clearly and concisely."),
-    ("user", "Question: {question}")
-])
+def query_llama3(prompt):
+    data = {
+        "inputs": prompt,
+        "parameters": {
+            "max_new_tokens": 256,
+            "temperature": 0.7,
+            "return_full_text": False
+        }
+    }
 
-output_parser = StrOutputParser()
-chain = prompt | llm | output_parser
+    response = requests.post(API_URL, headers=headers, json=data)
+    if response.status_code == 200:
+        result = response.json()
+        if isinstance(result, list) and "generated_text" in result[0]:
+            return result[0]["generated_text"]
+        elif "error" in result:
+            return f"API Error: {result['error']}"
+        else:
+            return "Unexpected response format from model."
+    else:
+        return f"Request failed with status code {response.status_code}"
 
 # ----------------- Main UI ------------------
 st.title("Random Generator Toolkit")
@@ -76,12 +87,12 @@ elif tool == "Random Password Generator":
         st.caption("Keep it secure 🔐")
 
 elif tool == "LLaMA 3 Chatbot":
-    st.subheader("🤖 Chat with LLaMA 3 (Together.ai)")
+    st.subheader("🤖 Chat with LLaMA 3 (via Hugging Face)")
     user_input = st.text_input("Ask something...")
     if user_input:
         with st.spinner("Generating response..."):
-            response = chain.invoke({"question": user_input})
-            st.success(response)
+            result = query_llama3(user_input)
+            st.success(result)
 
 # ----------------- Footer ------------------
 st.markdown("---")
