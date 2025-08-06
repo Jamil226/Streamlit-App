@@ -44,7 +44,7 @@ def generate_random_password(length=12, mode="All"):
 api_key = st.secrets["TOGETHER_API_KEY"]
 
 llm = Together(
-    model="meta-llama/Llama-3-8b-chat",
+    model="meta-llama/Meta-Llama-3-8B-Instruct",
     temperature=0.7,
     top_p=0.9,
     together_api_key=api_key,
