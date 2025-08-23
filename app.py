@@ -9,7 +9,10 @@ st.set_page_config(page_title="Random Generator Toolkit", page_icon="🎲", layo
 
 # ----------------- Sidebar ------------------
 st.sidebar.title("🧰 Tools")
-tool = st.sidebar.radio("Choose a Tool", ["Random Name Generator", "Random Password Generator", "LLaMA 3.1 Chatbot"])
+tool = st.sidebar.radio(
+    "Choose a Tool", 
+    ["Random Name Generator", "Random Password Generator", "AI Chatbot", "Text to Image Generator"]
+)
 
 st.sidebar.markdown("---")
 st.sidebar.info("Empowering people through open-source innovation.")
@@ -38,28 +41,33 @@ def generate_random_password(length=12, mode="All"):
         chars = string.ascii_letters + string.digits + string.punctuation
     return ''.join(random.choices(chars, k=length))
 
-# ----------------- Hugging Face Chatbot ------------------
+# ----------------- Hugging Face APIs ------------------
 HF_TOKEN = st.secrets["HUGGINGFACE"]["API_TOKEN"]
 
+# Chatbot
 def query_llama3(question):
     API_URL = "https://router.huggingface.co/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {HF_TOKEN}"
-    }
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
     payload = {
         "model": "meta-llama/Llama-3.1-8B-Instruct:novita",
-        "messages": [
-            {
-                "role": "user",
-                "content": question
-            }
-        ]
+        "messages": [{"role": "user", "content": question}]
     }
     response = requests.post(API_URL, headers=headers, json=payload)
     if response.status_code == 200:
         return response.json()["choices"][0]["message"]["content"]
     else:
         return f"Error {response.status_code}: {response.text}"
+
+# Text-to-Image
+def text_to_image(prompt):
+    API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2"
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+    payload = {"inputs": prompt}
+    response = requests.post(API_URL, headers=headers, json=payload)
+    if response.status_code == 200:
+        return response.content  # returns image bytes
+    else:
+        return None
 
 # ----------------- Main UI ------------------
 st.title("Random Generator Toolkit")
@@ -86,6 +94,17 @@ elif tool == "LLaMA 3.1 Chatbot":
             response = query_llama3(user_input)
             st.success(response)
 
+elif tool == "Text to Image Generator":
+    st.subheader("🎨 Text to Image Generator")
+    prompt = st.text_area("Enter your prompt for the image...")
+    if st.button("Generate Image"):
+        with st.spinner("Generating image..."):
+            image_bytes = text_to_image(prompt)
+            if image_bytes:
+                st.image(image_bytes, caption="Generated Image", use_column_width=True)
+            else:
+                st.error("Failed to generate image. Please try again.")
+
 # ----------------- Footer ------------------
 st.markdown("---")
-st.caption("Built with ❤️ by Muhammad Jamil — Open-source tools for everyone.")
+st.caption("Built with ❤️ by Ahmad Hassan — Open-source tools for everyone.")

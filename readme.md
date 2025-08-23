@@ -11,7 +11,7 @@ Empowering people through open-source innovation.
 
 ## Live Demo
 
-🟢 Try it here: [jamil226.streamlit.app/](https://jamil226.streamlit.app/)
+🟢 Try it here: [https://ahmad-uoswl.streamlit.app/](https://ahmad-uoswl.streamlit.app/)
 
 ---
 
