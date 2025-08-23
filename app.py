@@ -6,7 +6,7 @@ from huggingface_hub import InferenceClient
 import requests
 
 # ----------------- Page Config ------------------
-st.set_page_config(page_title="Random Generator Toolkit", page_icon="🎲", layout="centered")
+st.set_page_config(page_title="AI Toolkit", page_icon="🎲", layout="centered")
 
 # ----------------- Sidebar ------------------
 st.sidebar.title("🧰 Tools")
@@ -79,7 +79,7 @@ def text_to_image(prompt):
         return None
 
 # ----------------- Main UI ------------------
-st.title("Random Generator Toolkit")
+st.title("AI Master Toolkit")
 
 if tool == "Random Name Generator":
     st.subheader("📛 Random Name Generator")
