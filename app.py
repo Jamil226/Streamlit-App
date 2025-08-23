@@ -6,19 +6,44 @@ import requests
 from huggingface_hub import InferenceClient
 
 # ----------------- Page Config ------------------
-st.set_page_config(page_title="Random Generator Toolkit", page_icon="🎲", layout="centered")
+st.set_page_config(page_title="AI Creativity Toolkit", page_icon="✨", layout="wide")
 
 # ----------------- Sidebar ------------------
-st.sidebar.title("🧰 Tools")
+st.sidebar.title("🧰 AI Creativity Toolkit")
 tool = st.sidebar.radio(
     "Choose a Tool", 
-    ["Random Name Generator", "Random Password Generator", "LLaMA 3.1 Chatbot", "Text to Image Generator"]
+    ["🎨 Text to UI", "🖼️ Text to Image", "🤖 Chatbot"]
 )
 
 st.sidebar.markdown("---")
-st.sidebar.info("Empowering people through open-source innovation.")
+st.sidebar.success("🚀 Create, Design & Imagine with AI — all in one place.")
 
-# ----------------- Load Names from JSON ------------------
+# ----------------- Hugging Face Token ------------------
+HF_TOKEN = st.secrets["HF_TOKEN"]
+
+# ----------------- Hugging Face Clients ------------------
+# Text-to-Image client
+image_client = InferenceClient(
+    provider="auto",   # Let Hugging Face choose the right provider
+    api_key=HF_TOKEN,
+)
+
+# Chatbot (LLaMA 3.1)
+def query_llama3(question: str):
+    API_URL = "https://router.huggingface.co/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+    payload = {
+        "model": "meta-llama/Llama-3.1-8B-Instruct:novita",
+        "messages": [{"role": "user", "content": question}],
+        "temperature": 0.7,
+    }
+    response = requests.post(API_URL, headers=headers, json=payload)
+    if response.status_code == 200:
+        return response.json()["choices"][0]["message"]["content"]
+    else:
+        return f"Error {response.status_code}: {response.text}"
+
+# ----------------- Optional Random Name / Password Utilities ------------------
 @st.cache_data
 def load_names():
     with open("random_names.json", "r") as f:
@@ -26,12 +51,12 @@ def load_names():
 
 names = load_names()
 
-# ----------------- Utility Functions ------------------
 def generate_random_name():
     person = random.choice(names)
     return f"{person['first_name']} {person['last_name']}"
 
 def generate_random_password(length=12, mode="All"):
+    import string
     if mode == "Letters Only":
         chars = string.ascii_letters
     elif mode == "Numbers Only":
@@ -42,30 +67,12 @@ def generate_random_password(length=12, mode="All"):
         chars = string.ascii_letters + string.digits + string.punctuation
     return ''.join(random.choices(chars, k=length))
 
-# ----------------- Hugging Face APIs ------------------
-HF_TOKEN = st.secrets["HUGGINGFACE"]["API_TOKEN"]
+# ----------------- Text-to-UI Function ------------------
+def text_to_ui(prompt):
+    """Generate Python Streamlit UI code using LLaMA 3.1"""
+    return query_llama3(f"Write a Streamlit component for this description:\n{prompt}")
 
-# Hugging Face client for image generation
-image_client = InferenceClient(
-    provider="auto",
-    api_key=HF_TOKEN,
-)
-
-# Chatbot
-def query_llama3(question):
-    API_URL = "https://router.huggingface.co/v1/chat/completions"
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    payload = {
-        "model": "meta-llama/Llama-3.1-8B-Instruct:novita",
-        "messages": [{"role": "user", "content": question}]
-    }
-    response = requests.post(API_URL, headers=headers, json=payload)
-    if response.status_code == 200:
-        return response.json()["choices"][0]["message"]["content"]
-    else:
-        return f"Error {response.status_code}: {response.text}"
-
-# Text-to-Image (updated)
+# ----------------- Text-to-Image Function ------------------
 def text_to_image(prompt):
     try:
         image = image_client.text_to_image(
@@ -74,44 +81,45 @@ def text_to_image(prompt):
         )
         return image
     except Exception as e:
+        st.error(f"Failed to generate image: {e}")
         return None
 
 # ----------------- Main UI ------------------
-st.title("Random Generator Toolkit")
+st.title("✨ AI Creativity Toolkit")
 
-if tool == "Random Name Generator":
-    st.subheader("📛 Random Name Generator")
-    if st.button("Generate Name"):
-        st.success(f"Generated Name: `{generate_random_name()}`")
+if tool == "🎨 Text to UI":
+    st.subheader("Generate UI Design from Text")
+    ui_prompt = st.text_area(
+        "Describe the UI you want (e.g., 'A login form with email, password and a submit button'):"
+    )
+    if st.button("Generate UI Code"):
+        if ui_prompt.strip():
+            with st.spinner("Generating UI..."):
+                code = text_to_ui(ui_prompt)
+                st.code(code, language="python")
+        else:
+            st.warning("Please enter a UI description.")
 
-elif tool == "Random Password Generator":
-    st.subheader("🔑 Random Password Generator")
-    length = st.slider("Password Length", 8, 32, 12)
-    mode = st.selectbox("Password Type", ["Letters Only", "Numbers Only", "Letters + Numbers", "All"])
-    if st.button("Generate Password"):
-        password = generate_random_password(length, mode)
-        st.success(f"Generated Password: `{password}`")
-        st.caption("Keep it secure 🔐")
+elif tool == "🖼️ Text to Image":
+    st.subheader("Generate Image from Text")
+    img_prompt = st.text_area("Enter your image description (e.g., 'Astronaut riding a horse'):")
+    if st.button("Generate Image"):
+        if img_prompt.strip():
+            with st.spinner("Generating image..."):
+                image = text_to_image(img_prompt)
+                if image:
+                    st.image(image, caption="Generated Image", use_container_width=True)
+        else:
+            st.warning("Please enter a prompt for the image.")
 
-elif tool == "LLaMA 3.1 Chatbot":
-    st.subheader("🤖 Chat with LLaMA 3.1 (Hugging Face)")
-    user_input = st.text_input("Ask something...")
+elif tool == "🤖 Chatbot":
+    st.subheader("Chat with LLaMA 3.1")
+    user_input = st.text_input("Ask me anything...")
     if user_input:
         with st.spinner("Thinking..."):
             response = query_llama3(user_input)
             st.success(response)
 
-elif tool == "Text to Image Generator":
-    st.subheader("🎨 Text to Image Generator")
-    prompt = st.text_area("Enter your prompt for the image...")
-    if st.button("Generate Image"):
-        with st.spinner("Generating image..."):
-            image = text_to_image(prompt)
-            if image:
-                st.image(image, caption="Generated Image", use_column_width=True)
-            else:
-                st.error("Failed to generate image. Please try again.")
-
 # ----------------- Footer ------------------
 st.markdown("---")
-st.caption("Built with ❤️ by Ahmad Hassan — Open-source tools for everyone.")
+st.caption("✨ Built with ❤️ using Streamlit + Hugging Face Inference API")
